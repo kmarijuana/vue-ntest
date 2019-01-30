@@ -1,45 +1,14 @@
 <template>
   <table :class="table_class">
     <tr>
-      <th v-for="(obj, key) in column" :key="key" v-if="obj.fixed==fixed">
+      <th v-for="(obj, key) in column" :key="key" v-if="key!='Action'">
         <div>{{obj.title}}</div>
-        <hr>
-        <div class="field">
-          <div class="control" v-if="obj.search || obj.action" style="text-align: center;">
-            <input
-              v-if="key != 'Action'"
-              @input="$emit('reload')"
-              class="input is-primary is-small is-rounded"
-              v-model="searchValue[key]"
-              type="search"
-              :placeholder="'Search by '+obj.title"
-            >
-            <i
-              v-else
-              class="fas fa-plus"
-              style="cursor: pointer;padding:0.175em;color:#23d160"
-              @click="$emit('addRow')"
-            ></i>
-          </div>
-        </div>
       </th>
     </tr>
     <tbody>
-      <tr v-for="(record, index) in data" :key="index">
-        <td v-for="(obj, key) in column" :key="key" v-if="obj.fixed==fixed">
-          <span v-if="key != 'Action'">{{ record[key] }}</span>
-          <span v-else>
-            <i
-              class="fas fa-edit"
-              style="cursor: pointer;padding:0.5em;color:#ffdd57"
-              @click="$emit('editRow', index)"
-            ></i>
-            <i
-              class="fas fa-trash-alt"
-              style="cursor: pointer;padding:0.5em;color:#ff2b56"
-              @click="$emit('deleteRow', index)"
-            ></i>
-          </span>
+      <tr style="  height:  250px;">
+        <td colspan="99">
+          <span>{{loading?'loading....':'Data : 0 Record'}}</span>
         </td>
       </tr>
     </tbody>
@@ -48,7 +17,12 @@
 
 <script>
 export default {
-  props: ["table_class", "fixed","column","data","searchValue"],
+  props: ["table_class", "aa","column","loading"],
+    data() {
+    return {
+      text:'Data : 0 Record'
+    };
+  },
   // created() {
   //   console.log("created");
   //       this.$emit('resize')
@@ -77,7 +51,7 @@ export default {
   //     // this.changePageSize()
   //     // console.log(this.currentPage)
   //     console.log("dddddddds")
-  //     console.log(this.fixed)
+  //     console.log(this.aa)
   //     this.data = val;
   //      this.$emit('resize')
   //     // this.resize_content_scrollwidth();

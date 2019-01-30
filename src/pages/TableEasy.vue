@@ -1,61 +1,78 @@
 <template>
   <div>
-    <div>
+    <div v-if="table.data.data.length>0">
+      <div>
+        <div class="vertical scroll_hide" ref="table_width">
+          <div class="freeze">
+            <div class="vertical scroll_hide" ref="fixed_left_width">
+              <div class="freeze" style="margin-bottom: 100px;">
+                <Table
+                  :table_class="'freeze_table table is-striped is-narrow is-hoverable is-fullwidth'"
+                  :fixed="'left'"
+                  :column="column"
+                  :data="table.data.data"
+                  :searchValue="table.searchValue"
+                  v-on:reload="reloadTable($event)"
+                  v-on:addRow="addRow($event)"
+                  v-on:editRow="editRow($event)"
+                  v-on:deleteRow="deleteRow($event)"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="vertical scroll_hide" :style="{width:scrolling_width+'px'}">
+            <div class="vertical scroll_show" ref="scrollingTop" @scroll="scrolling()">
+              <div class="freeze">
+                <Table
+                  :table_class="'table is-striped is-narrow is-hoverable is-fullwidth'"
+                  :fixed="''"
+                  :column="column"
+                  :data="table.data.data"
+                  :searchValue="table.searchValue"
+                  v-on:reload="reloadTable($event)"
+                  v-on:addRow="addRow($event)"
+                  v-on:editRow="editRow($event)"
+                  v-on:deleteRow="deleteRow($event)"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="freeze">
+            <div class="vertical scroll_hide" ref="fixed_right_width">
+              <div class="freeze" style="margin-bottom: 100px;">
+                <Table
+                  :table_class="'freeze_table table is-striped is-narrow is-hoverable is-fullwidth'"
+                  :fixed="'right'"
+                  :column="column"
+                  :data="table.data.data"
+                  :searchValue="table.searchValue"
+                  v-on:reload="reloadTable($event)"
+                  v-on:addRow="addRow($event)"
+                  v-on:editRow="editRow($event)"
+                  v-on:deleteRow="deleteRow($event)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else>
       <div class="vertical scroll_hide" ref="table_width">
-        <div class="freeze">
+        <div class="freeze" style="width: 100% !important;">
           <div class="vertical scroll_hide" ref="fixed_left_width">
-            <div class="freeze" style="margin-bottom: 100px;">
-              <Table
+            <div class="freeze" style="margin-bottom: 100px;width: 100% !important;">
+              <NodataTable
                 :table_class="'freeze_table table is-striped is-narrow is-hoverable is-fullwidth'"
-                :aa="'left'"
                 :column="column"
-                :data="table.data.data"
-                :searchValue="table.searchValue"
-                v-on:reload="reloadTable($event)"
-                v-on:addRow="addRow($event)"
-                v-on:editRow="editRow($event)"
-                v-on:deleteRow="deleteRow($event)"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="vertical scroll_hide" :style="{width:scrolling_width+'px'}">
-          <div class="vertical scroll_show" ref="scrollingTop" @scroll="scrolling()">
-            <div class="freeze">
-              <Table
-                :table_class="'table is-striped is-narrow is-hoverable is-fullwidth'"
-                :aa="''"
-                :column="column"
-                :data="table.data.data"
-                :searchValue="table.searchValue"
-                v-on:reload="reloadTable($event)"
-                v-on:addRow="addRow($event)"
-                v-on:editRow="editRow($event)"
-                v-on:deleteRow="deleteRow($event)"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="freeze">
-          <div class="vertical scroll_hide" ref="fixed_right_width">
-            <div class="freeze" style="margin-bottom: 100px;">
-              <Table
-                :table_class="'freeze_table table is-striped is-narrow is-hoverable is-fullwidth'"
-                :aa="'right'"
-                :column="column"
-                :data="table.data.data"
-                :searchValue="table.searchValue"
-                v-on:reload="reloadTable($event)"
-                v-on:addRow="addRow($event)"
-                v-on:editRow="editRow($event)"
-                v-on:deleteRow="deleteRow($event)"
+                :loading="loading"
               />
             </div>
           </div>
         </div>
       </div>
     </div>
-    <Pagination
+      <Pagination
       :setTotalRecord="table.data.recordsTotal"
       :setCurrentPage="table.currentPage"
       :setPageSize="table.pageSize"
@@ -68,53 +85,27 @@
 <script>
 import Pagination from "./Pagination";
 import Table from "./Table";
+import NodataTable from "./NodataTable";
 export default {
   mounted() {
     this.reloadTable();
-    
-    this.table_width = this.$refs.table_width.clientHeight
-    this.fixed_left_width = this.$refs.fixed_left_width.clientHeight
-    this.fixed_right_width = this.$refs.fixed_right_width.clientHeight
-
-    window.addEventListener('load', () => {
-    // https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model/Determining_the_dimensions_of_elements
-     this.resize_content_scrollwidth()
-  })
-    window.onresize = () => {
-      this.windowWidth = window.innerWidth;
-      this.resize_content_scrollwidth()
-    };
+    window.addEventListener("load", this.resize_content_scrollwidth);
+    window.addEventListener("resize", this.resize_content_scrollwidth);
   },
-   updated() {
-      this.resize_content_scrollwidth()
-    // console.log("updated")
-    // setTimeout(()=>{
-    //   this.resize_content_scrollwidth();
-    // },100)
+  updated() {
+    this.resize_content_scrollwidth();
   },
-  // watch: {
-  //   table: function() {
-  //     // this.changePageSize()
-  //     // console.log(this.currentPage)
-  //     // console.log("dddddddds")
-  //     // this.table.data = val;
-  //     console.log("DDDDDDDDDDDDDDDDDDDDDDDDD")
-  //     this.resize_content_scrollwidth();
-  //   }
-  // },
   components: {
     Table,
-    Pagination
+    Pagination,
+    NodataTable
   },
   props: ["column", "url"],
   data() {
     return {
-      table_width : 0,
-    fixed_left_width : 0,
-    fixed_right_width : 0,
-      windowWidth: window.innerWidth,
       scrolling_width: 0,
       left: 0,
+      loading:true,
       table: {
         currentPage: 1,
         pageSize: 50,
@@ -134,8 +125,11 @@ export default {
       this.$refs.fixed_left_width.scrollTop = this.$refs.scrollingTop.scrollTop;
       this.$refs.fixed_right_width.scrollTop = this.$refs.scrollingTop.scrollTop;
     },
-    resize_content_scrollwidth(){
-      this.scrolling_width = this.$refs.table_width.offsetWidth - (this.$refs.fixed_left_width.offsetWidth + this.$refs.fixed_right_width.offsetWidth);
+    resize_content_scrollwidth() {
+      this.scrolling_width =
+        this.$refs.table_width.offsetWidth -
+        (this.$refs.fixed_left_width.offsetWidth +
+          this.$refs.fixed_right_width.offsetWidth);
     },
     setTable(data) {
       this.table.currentPage = data[0];
@@ -178,8 +172,9 @@ export default {
         let res = await fetch(
           `${this.url}?draw=${this.table.currentPage}${window.encodeURI(
             ndata
-          )}&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=desc
-          &start=${this.table.currentPage * this.table.pageSize -
+          )}&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=desc&start=${this
+            .table.currentPage *
+            this.table.pageSize -
             this.table.pageSize}
           &length=${this.table.pageSize}
           &search%5Bvalue%5D=&search%5Bregex%5D=false&_=1547687980946`,
@@ -191,10 +186,28 @@ export default {
               "Content-Type": "application/json"
             }
           }
-        );
-        res = await res.json();
-        this.table.data = await res;
+        )
+          .then(response => response.json())
+          .then(response => {
+            console.log(response);
+            this.table.data = response;
+            this.loading = false;
+          })
+          .catch(() => {
+            //   this.table.data.data = {
+            //   count: 0,
+            //   data: [],
+            //   recordsFiltered: 0,
+            //   recordsTotal: 0
+            // }
+            console.log(
+              "Can’t access " + this.url + " response. Blocked by browser?"
+            );
+          });
+        // res = await res.json();
+        // this.table.data = await res;
       };
+      this.loading = true;
       service(this);
     },
     addRow(index) {
@@ -260,8 +273,6 @@ export default {
   zoom: 1;
   *display: inline;
   vertical-align: top;
-  /* width:100px; */
   width: fit-content;
 }
-
 </style>

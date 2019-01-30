@@ -5,12 +5,11 @@
         <div class="field">
           <div class="control">
             <div class="select is-primary">
-              <!-- <select v-model="pageList" @change="changePageSize()" >
-                <option v-for="(value, key) in setPageList" :selected="setPageSize==value" :key="key" v-bind:value="value"  >
-                  {{ value }}
-                </option>
-              </select>-->
-              <select v-model="inputPageSize" @change="changePageSize(refresh)">
+              <select
+                v-model="inputPageSize"
+                @change="changePageSize(refresh)"
+                :disabled="setTotalRecord==0"
+              >
                 <option
                   v-for="(value, key) in setPageList"
                   :selected="value==setPageSize"
@@ -24,21 +23,49 @@
       </div>
     </div>
 
-      <!-- <p>dddd</p> -->
-
+    <!-- <p>dddd</p> -->
     <div class="level-right">
       <div class="level-item">
-        <nav class="pagination " role="navigation" aria-label="pagination">
-          <a class="pagination-previous button is-primary is-outlined" :disabled="currentPage<=1" @click="previous(refresh)">Previous</a>
-          <a class="pagination-next button is-primary is-outlined" :disabled="currentPage==totalPage" @click="next(refresh)">Next page</a>
+        <nav class="pagination" role="navigation" aria-label="pagination">
           <ul class="pagination-list">
-            <li :hidden="currentPage<3"><a class="pagination-link button is-primary is-outlined" @click="changeCurrentPage(1,refresh)">1</a></li>
-            <li :hidden="currentPage<3"><span class="pagination-ellipsis">&hellip;</span></li>
-            <li v-for="(item, index) in totalPage" v-if="item > currentPage-2 && item < currentPage+2" :key="index" >
-              <a :disabled="item == currentPage" class="pagination-link button is-primary is-outlined" @click="changeCurrentPage(item,refresh)" >{{item}}</a>
+            <li :hidden="currentPage<3">
+              <a
+                class="pagination-link button is-primary is-outlined"
+                @click="changeCurrentPage(1,refresh)"
+              >1</a>
+                      <span class="pagination-ellipsis">&hellip;</span>
             </li>
-            <li :hidden="currentPage>(totalPage-2)"><span class="pagination-ellipsis">&hellip;</span></li>
-            <li :hidden="currentPage>(totalPage-2)"><a class="pagination-link button is-primary is-outlined" @click="changeCurrentPage(totalPage,refresh)">{{totalPage}}</a></li>
+            <li
+              v-for="(item, index) in totalPage"
+              v-if="item > currentPage-2 && item < currentPage+2"
+              :key="index"
+            >
+              <a
+                :disabled="item == currentPage"
+                class="pagination-link button is-primary is-outlined"
+                @click="changeCurrentPage(item,refresh)"
+              >{{item}}</a>
+            </li>
+
+            <li :hidden="currentPage>(totalPage-2)">
+                <span class="pagination-ellipsis">&hellip;</span>
+              <a
+                class="pagination-link button is-primary is-outlined"
+                @click="changeCurrentPage(totalPage,refresh)"
+              >{{totalPage}}</a>
+            </li>
+          </ul>
+          <ul class="pagination-list">
+            <a
+              class="pagination-previous button is-primary is-outlined"
+              :disabled="currentPage<=1"
+              @click="previous(refresh)"
+            >Previous</a>
+            <a
+              class="pagination-next button is-primary is-outlined"
+              :disabled="currentPage>=totalPage"
+              @click="next(refresh)"
+            >Next page</a>
           </ul>
         </nav>
 
@@ -59,7 +86,7 @@
             v-else
             @click="changeCurrentPage(item)"
           >{{item}}</span>
-        </div> -->
+        </div>-->
       </div>
     </div>
   </div>
@@ -71,46 +98,50 @@ export default {
   mounted() {
     this.currentPage = this.setCurrentPage;
   },
-  watch:{
+  watch: {
     setTotalRecord: function() {
       // console.log("setTotalRecord")
-      this.changePageSize()
+      this.changePageSize();
     },
     setCurrentPage: function(val) {
       // this.changePageSize()
       // console.log(this.currentPage)
       // console.log("dddddddds")
-      this.currentPage = val
-      this.changePageSize()
-    } 
+      this.currentPage = val;
+      this.changePageSize();
+    }
   },
   methods: {
     changePageSize(callback) {
       this.totalPage = Math.ceil(this.setTotalRecord / this.inputPageSize);
-      if(this.currentPage > this.totalPage){
-        this.currentPage = 1
+      if (this.currentPage > this.totalPage) {
+        this.currentPage = 1;
       }
-      typeof callback === "function"?callback():"";
+      typeof callback === "function" ? callback() : "";
     },
-    changeCurrentPage(page,callback){
+    changeCurrentPage(page, callback) {
       this.currentPage = page;
-      typeof callback === "function"?callback():"";
+      typeof callback === "function" ? callback() : "";
       // this.$emit("refresh", [this.currentPage,this.inputPageSize]);
     },
-    previous(callback){
-      if(this.currentPage<=1){return}
+    previous(callback) {
+      if (this.currentPage <= 1) {
+        return;
+      }
       this.currentPage--;
-      typeof callback === "function"?callback():"";
+      typeof callback === "function" ? callback() : "";
       // this.$emit("refresh", [this.currentPage,this.inputPageSize])
     },
-    next(callback){
-      if(this.currentPage>=this.totalPage){return}
+    next(callback) {
+      if (this.currentPage >= this.totalPage) {
+        return;
+      }
       this.currentPage++;
-      typeof callback === "function"?callback():"";
+      typeof callback === "function" ? callback() : "";
       // this.$emit("refresh", [this.currentPage,this.inputPageSize])
     },
-    refresh(){
-      this.$emit("refresh", [this.currentPage,this.inputPageSize]);
+    refresh() {
+      this.$emit("refresh", [this.currentPage, this.inputPageSize]);
     }
   },
   data() {
@@ -118,7 +149,7 @@ export default {
       totalPage: 0,
       currentPage: 1,
       recordsTotal: 1,
-      inputPageSize: 50,
+      inputPageSize: 50
       // pageList: 0
     };
   }
@@ -126,8 +157,8 @@ export default {
 </script>
 
 <style scoped>
-@import "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css";
-.content ul{
-      list-style: unset  !important;
+/* @import "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css"; */
+.content ul {
+  list-style: unset !important;
 }
 </style>

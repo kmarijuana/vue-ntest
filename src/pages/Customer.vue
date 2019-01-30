@@ -4,10 +4,10 @@
       <card :title="table.customer.title">
         <TableEasy
           :column="table.customer.column"
-          :url="'http://192.168.4.12:9999/api/v1/customer/search/record'"
-          v-on:addRow="addCustomer()"
-          v-on:editRow="editCustomer($event)"
-          v-on:deleteRow="deleteCustomer($event)"
+          :url="table.customer.url"
+          v-on:addRow="setting($event,'รายชื่อลูกค้า','insert')"
+          v-on:editRow="setting($event,'รายชื่อลูกค้า','update')"
+          v-on:deleteRow="setting($event,'รายชื่อลูกค้า','delete')"
         />
       </card>
     </div>
@@ -15,10 +15,10 @@
       <card :title="table.project.title">
         <TableEasy
           :column="table.project.column"
-          :url="'http://192.168.4.12:9999/api/v1/project/search/record'"
-          v-on:addRow="addProject()"
-          v-on:editRow="editProject($event)"
-          v-on:deleteRow="deleteProject($event)"
+          :url="table.project.url"
+          v-on:addRow="setting($event,'โครงการ','insert')"
+          v-on:editRow="setting($event,'โครงการ','update')"
+          v-on:deleteRow="setting($event,'โครงการ','delete')"
         />
       </card>
     </div>
@@ -44,9 +44,28 @@
         />
       </card>
     </div>-->
+    <Modal v-if="modal.show" :ui_class="modal.case=='delete'?'modal-card':'modal-card modal-content-width'">
+      <header class="modal-card-head" slot="dataHeader">
+        <p  class="modal-card-title">
+          {{modal.case=='insert'?'เพิ่ม' :modal.case=='update'?'แก้ไข':'ลบ'}}ข้อมูล{{modal.type}}
+          {{modal.case!='insert'?` : ${modal.data.id}`:``}}
+        </p>
+        <button class="delete" aria-label="close" @click="modal.show = false"></button>
+      </header>
+      <section class="modal-card-body" slot="dataBody">
+        <Delete v-if="modal.case == 'delete'"></Delete>
+        <Customer v-else-if="modal.type=='รายชื่อลูกค้า'" :color="modal.case=='insert'?'#23d160' :modal.case=='update'?'#ffdd57':'#ff3860'" :setData="modal.data"/>
+        <Project v-else-if="modal.type=='โครงการ'" :color="modal.case=='insert'?'#23d160' :modal.case=='update'?'#ffdd57':'#ff3860'" :setData="modal.data"/>
+      </section>
+      <footer class="modal-card-foot" slot="dataFooter">
+        <button v-if="modal.case=='insert'" class="button is-success" @click="insert_data()">Insert new record</button>
+        <button v-else-if="modal.case=='update'" class="button is-warning" style="color:white" @click="update_data()">Update record</button>
+        <button v-else-if="modal.case=='delete'" class="button is-danger" @click="delete_data()">Delete record</button>
+        <button class="button" @click="modal.show = false">Cancel</button>
+      </footer>
+    </Modal>
 
-
-    <div v-if="modal.customer.add" class="modal is-active">
+    <!-- <div v-if="modal.customer.add" class="modal is-active">
       <div class="modal-background"></div>
       <div class="modal-card modal-content-width">
         <header class="modal-card-head">
@@ -54,6 +73,7 @@
           <button class="delete" aria-label="close" @click="modal.customer.add = false"></button>
         </header>
         <section class="modal-card-body">
+          
           <div>
             <v-tabs v-model="active" color="#23d160" dark slider-color="white">
               <v-tab>ข้อมูลหลัก</v-tab>
@@ -67,14 +87,14 @@
                           <ul>
                             <li></li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                              @click="modal.tabSelect.level2 = 'customerData'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null }"
+                              @click="modal.tabSelect.subTab = 'customerData'"
                             >
                               <a>ข้อมูลลูกค้า</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                              @click="modal.tabSelect.level2 = 'addressInformation'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'addressInformation' }"
+                              @click="modal.tabSelect.subTab = 'addressInformation'"
                             >
                               <a>ที่อยู่</a>
                             </li>
@@ -82,7 +102,7 @@
                         </div>
                         <div class="content" style="black">
                           <div
-                            v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
+                            v-show="modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null"
                           >
                             <div class="content">
                               <div class="row">
@@ -355,7 +375,7 @@
                               </div>
                             </div>
                           </div>
-                          <div v-show="modal.tabSelect.level2 == 'addressInformation'">
+                          <div v-show="modal.tabSelect.subTab == 'addressInformation'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-6 col-xs-12">
@@ -545,20 +565,20 @@
                           <ul>
                             <li></li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                              @click="modal.tabSelect.level3 = 'contact'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null }"
+                              @click="modal.tabSelect.subTab = 'contact'"
                             >
                               <a>ผู้ติดต่อหลัก</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                              @click="modal.tabSelect.level3 = 'financial'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'financial' }"
+                              @click="modal.tabSelect.subTab = 'financial'"
                             >
                               <a>การเงิน</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                              @click="modal.tabSelect.level3 = 'attachment'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'attachment' }"
+                              @click="modal.tabSelect.subTab = 'attachment'"
                             >
                               <a>เอกสารแนบ</a>
                             </li>
@@ -566,7 +586,7 @@
                         </div>
                         <div class="content" style="black">
                           <div
-                            v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
+                            v-show="modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null"
                           >
                             <TableEasy
                               :column="table.customer.column"
@@ -575,7 +595,7 @@
                               v-on:deleteRow="deleteCustomer($event)"
                             />
                           </div>
-                          <div v-show="modal.tabSelect.level3 == 'financial'">
+                          <div v-show="modal.tabSelect.subTab == 'financial'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-12 col-xs-12">
@@ -650,7 +670,7 @@
                               </div>
                             </div>
                           </div>
-                          <div v-show="modal.tabSelect.level3 == 'attachment'">
+                          <div v-show="modal.tabSelect.subTab == 'attachment'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-12 col-xs-12">
@@ -1056,111 +1076,13 @@
               <v-btn @click="next">next tab</v-btn>
             </div>
           </div>
-          <!-- <div v-for="(value, key) in modal.customer.data" :key="key">
-            <label>
-              <h4>{{ key }}</h4>
-            </label>
-            <input type="text" :class="template.input" v-model="modal.customer.data[key]">
-            <hr>
-          </div>-->
-          <!-- <div class="row">
-            <div class="col-12">
-              <div class="tabs">
-                <ul>
-                  <li></li>
-                  <li
-                    v-bind:class="{ 'is-active': modal.tabSelect.level1 == 'masterData' }"
-                    @click="modal.tabSelect.level1 = 'masterData'"
-                  >
-                    <a>ข้อมูลหลัก</a>
-                  </li>
-                  <li
-                    v-bind:class="{ 'is-active': modal.tabSelect.level1 == 'financial' }"
-                    @click="modal.tabSelect.level1 = 'financial'"
-                  >
-                    <a>ข้อมูลทางการเงิน</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="content" style="black">
-                <div v-show="modal.tabSelect.level1 == 'masterData'">
-                  <div class="row">
-                    <div class="col-12">
-                      <div class="tabs">
-                        <ul>
-                          <li></li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                            @click="modal.tabSelect.level2 = 'customerData'"
-                          >
-                            <a>ข้อมูลลูกค้า</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                            @click="modal.tabSelect.level2 = 'addressInformation'"
-                          >
-                            <a>ที่อยู่</a>
-                          </li>
-                        </ul>
-                      </div>
-                      <div class="content" style="black">
-                        <div
-                          v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
-                        >customerData</div>
-                        <div
-                          v-show="modal.tabSelect.level2 == 'addressInformation'"
-                        >addressInformation</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-show="modal.tabSelect.level1 == 'financial'">
-                  <div class="row">
-                    <div class="col-12">
-                      <div class="tabs">
-                        <ul>
-                          <li></li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                            @click="modal.tabSelect.level3 = 'contact'"
-                          >
-                            <a>ผู้ติดต่อหลัก</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                            @click="modal.tabSelect.level3 = 'financial'"
-                          >
-                            <a>การเงิน</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                            @click="modal.tabSelect.level3 = 'attachment'"
-                          >
-                            <a>เอกสารแนบ</a>
-                          </li>
-                        </ul>
-                      </div>
-                      <div class="content" style="black">
-                        <div
-                          v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
-                        >ผู้ติดต่อหลัก</div>
-                        <div v-show="modal.tabSelect.level3 == 'financial'">การเงิน</div>
-                        <div v-show="modal.tabSelect.level3 == 'attachment'">เอกสารแนบ</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>-->
         </section>
         <footer class="modal-card-foot">
           <button class="button is-success" @click="save()">Save</button>
           <button class="button" @click="modal.customer.add = false">Cancel</button>
         </footer>
       </div>
-    </div>
-
+    </div>-->
     <div v-if="modal.customer.edit" class="modal is-active">
       <div class="modal-background"></div>
       <div class="modal-card modal-content-width">
@@ -1182,14 +1104,14 @@
                           <ul>
                             <li></li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                              @click="modal.tabSelect.level2 = 'customerData'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null }"
+                              @click="modal.tabSelect.subTab = 'customerData'"
                             >
                               <a>ข้อมูลลูกค้า</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                              @click="modal.tabSelect.level2 = 'addressInformation'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'addressInformation' }"
+                              @click="modal.tabSelect.subTab = 'addressInformation'"
                             >
                               <a>ที่อยู่</a>
                             </li>
@@ -1197,7 +1119,7 @@
                         </div>
                         <div class="content" style="black">
                           <div
-                            v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
+                            v-show="modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null"
                           >
                             <div class="content">
                               <div class="row">
@@ -1470,7 +1392,7 @@
                               </div>
                             </div>
                           </div>
-                          <div v-show="modal.tabSelect.level2 == 'addressInformation'">
+                          <div v-show="modal.tabSelect.subTab == 'addressInformation'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-6 col-xs-12">
@@ -1660,20 +1582,20 @@
                           <ul>
                             <li></li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                              @click="modal.tabSelect.level3 = 'contact'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null }"
+                              @click="modal.tabSelect.subTab = 'contact'"
                             >
                               <a>ผู้ติดต่อหลัก</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                              @click="modal.tabSelect.level3 = 'financial'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'financial' }"
+                              @click="modal.tabSelect.subTab = 'financial'"
                             >
                               <a>การเงิน</a>
                             </li>
                             <li
-                              v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                              @click="modal.tabSelect.level3 = 'attachment'"
+                              v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'attachment' }"
+                              @click="modal.tabSelect.subTab = 'attachment'"
                             >
                               <a>เอกสารแนบ</a>
                             </li>
@@ -1681,7 +1603,7 @@
                         </div>
                         <div class="content" style="black">
                           <div
-                            v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
+                            v-show="modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null"
                           >
                             <TableEasy
                               :column="table.customer.column"
@@ -1690,7 +1612,7 @@
                               v-on:deleteRow="deleteCustomer($event)"
                             />
                           </div>
-                          <div v-show="modal.tabSelect.level3 == 'financial'">
+                          <div v-show="modal.tabSelect.subTab == 'financial'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-12 col-xs-12">
@@ -1765,7 +1687,7 @@
                               </div>
                             </div>
                           </div>
-                          <div v-show="modal.tabSelect.level3 == 'attachment'">
+                          <div v-show="modal.tabSelect.subTab == 'attachment'">
                             <div class="content">
                               <div class="row">
                                 <div class="col-md-12 col-xs-12">
@@ -2205,14 +2127,14 @@
                         <ul>
                           <li></li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                            @click="modal.tabSelect.level2 = 'customerData'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null }"
+                            @click="modal.tabSelect.subTab = 'customerData'"
                           >
                             <a>ข้อมูลลูกค้า</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                            @click="modal.tabSelect.level2 = 'addressInformation'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'addressInformation' }"
+                            @click="modal.tabSelect.subTab = 'addressInformation'"
                           >
                             <a>ที่อยู่</a>
                           </li>
@@ -2220,10 +2142,10 @@
                       </div>
                       <div class="content" style="black">
                         <div
-                          v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
+                          v-show="modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null"
                         >customerData</div>
                         <div
-                          v-show="modal.tabSelect.level2 == 'addressInformation'"
+                          v-show="modal.tabSelect.subTab == 'addressInformation'"
                         >addressInformation</div>
                       </div>
                     </div>
@@ -2236,20 +2158,20 @@
                         <ul>
                           <li></li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                            @click="modal.tabSelect.level3 = 'contact'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null }"
+                            @click="modal.tabSelect.subTab = 'contact'"
                           >
                             <a>ผู้ติดต่อหลัก</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                            @click="modal.tabSelect.level3 = 'financial'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'financial' }"
+                            @click="modal.tabSelect.subTab = 'financial'"
                           >
                             <a>การเงิน</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                            @click="modal.tabSelect.level3 = 'attachment'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'attachment' }"
+                            @click="modal.tabSelect.subTab = 'attachment'"
                           >
                             <a>เอกสารแนบ</a>
                           </li>
@@ -2257,10 +2179,10 @@
                       </div>
                       <div class="content" style="black">
                         <div
-                          v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
+                          v-show="modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null"
                         >ผู้ติดต่อหลัก</div>
-                        <div v-show="modal.tabSelect.level3 == 'financial'">การเงิน</div>
-                        <div v-show="modal.tabSelect.level3 == 'attachment'">เอกสารแนบ</div>
+                        <div v-show="modal.tabSelect.subTab == 'financial'">การเงิน</div>
+                        <div v-show="modal.tabSelect.subTab == 'attachment'">เอกสารแนบ</div>
                       </div>
                     </div>
                   </div>
@@ -2291,18 +2213,14 @@
       </div>
     </div>
 
-
-
-
-
-    <div v-if="modal.project.add" class="modal is-active">
+    <!-- <div v-if="modal.project.add" class="modal is-active">
       <div class="modal-background"></div>
       <div class="modal-card modal-content-width">
         <header class="modal-card-head">
           <p class="modal-card-title">เพิ่มข้อมูลรายโปรเจค : {{ modal.project.data.id }}</p>
           <button class="delete" aria-label="close" @click="modal.project.add = false"></button>
         </header>
-          <section class="modal-card-body">
+        <section class="modal-card-body">
           <div>
             <v-tabs v-model="active" color="#23d160" dark slider-color="white">
               <v-tab>ข้อมูลหลัก</v-tab>
@@ -2634,110 +2552,13 @@
               <v-btn @click="next">next tab</v-btn>
             </div>
           </div>
-          <!-- <div v-for="(value, key) in modal.customer.data" :key="key">
-            <label>
-              <h4>{{ key }}</h4>
-            </label>
-            <input type="text" :class="template.input" v-model="modal.customer.data[key]">
-            <hr>
-          </div>-->
-          <!-- <div class="row">
-            <div class="col-12">
-              <div class="tabs">
-                <ul>
-                  <li></li>
-                  <li
-                    v-bind:class="{ 'is-active': modal.tabSelect.level1 == 'masterData' }"
-                    @click="modal.tabSelect.level1 = 'masterData'"
-                  >
-                    <a>ข้อมูลหลัก</a>
-                  </li>
-                  <li
-                    v-bind:class="{ 'is-active': modal.tabSelect.level1 == 'financial' }"
-                    @click="modal.tabSelect.level1 = 'financial'"
-                  >
-                    <a>ข้อมูลทางการเงิน</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="content" style="black">
-                <div v-show="modal.tabSelect.level1 == 'masterData'">
-                  <div class="row">
-                    <div class="col-12">
-                      <div class="tabs">
-                        <ul>
-                          <li></li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                            @click="modal.tabSelect.level2 = 'customerData'"
-                          >
-                            <a>ข้อมูลลูกค้า</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                            @click="modal.tabSelect.level2 = 'addressInformation'"
-                          >
-                            <a>ที่อยู่</a>
-                          </li>
-                        </ul>
-                      </div>
-                      <div class="content" style="black">
-                        <div
-                          v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
-                        >customerData</div>
-                        <div
-                          v-show="modal.tabSelect.level2 == 'addressInformation'"
-                        >addressInformation</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-show="modal.tabSelect.level1 == 'financial'">
-                  <div class="row">
-                    <div class="col-12">
-                      <div class="tabs">
-                        <ul>
-                          <li></li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                            @click="modal.tabSelect.level3 = 'contact'"
-                          >
-                            <a>ผู้ติดต่อหลัก</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                            @click="modal.tabSelect.level3 = 'financial'"
-                          >
-                            <a>การเงิน</a>
-                          </li>
-                          <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                            @click="modal.tabSelect.level3 = 'attachment'"
-                          >
-                            <a>เอกสารแนบ</a>
-                          </li>
-                        </ul>
-                      </div>
-                      <div class="content" style="black">
-                        <div
-                          v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
-                        >ผู้ติดต่อหลัก</div>
-                        <div v-show="modal.tabSelect.level3 == 'financial'">การเงิน</div>
-                        <div v-show="modal.tabSelect.level3 == 'attachment'">เอกสารแนบ</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>-->
         </section>
         <footer class="modal-card-foot">
           <button class="button is-success" @click="save()">Save</button>
           <button class="button" @click="modal.project.add = false">Cancel</button>
         </footer>
       </div>
-    </div>
+    </div> -->
 
     <div v-if="modal.project.edit" class="modal is-active">
       <div class="modal-background"></div>
@@ -3112,14 +2933,14 @@
                         <ul>
                           <li></li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null }"
-                            @click="modal.tabSelect.level2 = 'customerData'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null }"
+                            @click="modal.tabSelect.subTab = 'customerData'"
                           >
                             <a>ข้อมูลลูกค้า</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level2 == 'addressInformation' }"
-                            @click="modal.tabSelect.level2 = 'addressInformation'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'addressInformation' }"
+                            @click="modal.tabSelect.subTab = 'addressInformation'"
                           >
                             <a>ที่อยู่</a>
                           </li>
@@ -3127,10 +2948,10 @@
                       </div>
                       <div class="content" style="black">
                         <div
-                          v-show="modal.tabSelect.level2 == 'customerData' || modal.tabSelect.level2 == null"
+                          v-show="modal.tabSelect.subTab == 'customerData' || modal.tabSelect.subTab == null"
                         >customerData</div>
                         <div
-                          v-show="modal.tabSelect.level2 == 'addressInformation'"
+                          v-show="modal.tabSelect.subTab == 'addressInformation'"
                         >addressInformation</div>
                       </div>
                     </div>
@@ -3143,20 +2964,20 @@
                         <ul>
                           <li></li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null }"
-                            @click="modal.tabSelect.level3 = 'contact'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null }"
+                            @click="modal.tabSelect.subTab = 'contact'"
                           >
                             <a>ผู้ติดต่อหลัก</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'financial' }"
-                            @click="modal.tabSelect.level3 = 'financial'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'financial' }"
+                            @click="modal.tabSelect.subTab = 'financial'"
                           >
                             <a>การเงิน</a>
                           </li>
                           <li
-                            v-bind:class="{ 'is-active': modal.tabSelect.level3 == 'attachment' }"
-                            @click="modal.tabSelect.level3 = 'attachment'"
+                            v-bind:class="{ 'is-active': modal.tabSelect.subTab == 'attachment' }"
+                            @click="modal.tabSelect.subTab = 'attachment'"
                           >
                             <a>เอกสารแนบ</a>
                           </li>
@@ -3164,10 +2985,10 @@
                       </div>
                       <div class="content" style="black">
                         <div
-                          v-show="modal.tabSelect.level3 == 'contact' || modal.tabSelect.level3 == null"
+                          v-show="modal.tabSelect.subTab == 'contact' || modal.tabSelect.subTab == null"
                         >ผู้ติดต่อหลัก</div>
-                        <div v-show="modal.tabSelect.level3 == 'financial'">การเงิน</div>
-                        <div v-show="modal.tabSelect.level3 == 'attachment'">เอกสารแนบ</div>
+                        <div v-show="modal.tabSelect.subTab == 'financial'">การเงิน</div>
+                        <div v-show="modal.tabSelect.subTab == 'attachment'">เอกสารแนบ</div>
                       </div>
                     </div>
                   </div>
@@ -3197,7 +3018,6 @@
         </footer>
       </div>
     </div>
-    
   </div>
 </template>
 
@@ -3205,6 +3025,9 @@
 import Table from "./Table";
 import TableEasy from "./TableEasy";
 import Modal from "./Modal";
+import Delete from "./Modal/Delete";
+import Customer from "./Modal/Customer";
+import Project from "./Modal/Project";
 // import Tambons from "../stores/Tambons";
 // import Amphoes from "../stores/Amphoes";
 // import Changwats from "../stores/Changwats";
@@ -3212,7 +3035,10 @@ export default {
   components: {
     Modal,
     Table,
-    TableEasy
+    TableEasy,
+    Delete,
+    Customer,
+    Project
   },
   mounted() {
     // this.reloadTable();
@@ -3220,13 +3046,6 @@ export default {
   },
   data() {
     return {
-      active: null,
-      text:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      // tambons: Tambons.data,
-      // amphoes: Amphoes.data,
-      // changwats: Changwats.data,
-
       template: {
         tableClass: "table is-hoverable table is-narrow is-fullwidth",
         input: "input is-small is-rounded is-success"
@@ -3235,10 +3054,14 @@ export default {
       rowIndex: null,
 
       modal: {
+        show:false,
+        data:{},
+        type:null,
+        case:null,
         tabSelect: {
           level1: null,
-          level2: null,
-          level3: null
+          subTab: null,
+          subTab: null
         },
         customer: {
           add: false,
@@ -3349,7 +3172,11 @@ export default {
               fixed: "right",
               action: "add"
             }
-          }
+          },
+          url: "http://192.168.4.12:9999/api/v1/customer/search/record",
+          addRow: "addCustomer",
+          editRow: "editCustomer",
+          deleteRow: "deleteCustomer"
         },
         project: {
           title: "Project Table",
@@ -3445,15 +3272,25 @@ export default {
               fixed: "right",
               action: "add"
             }
-          }
+          },
+          url: "http://192.168.4.12:9999/api/v1/project/search/record",
+          addRow: "addCustomer",
+          editRow: "editCustomer",
+          deleteRow: "deleteCustomer"
         }
       }
     };
   },
   methods: {
-    next() {
-      const active = parseInt(this.active);
-      this.active = active < 2 ? active + 1 : 0;
+    // next() {
+    //   const active = parseInt(this.active);
+    //   this.active = active < 2 ? active + 1 : 0;
+    // },
+    setting(dataRow,dataType,dataCase){
+      this.modal.show = true;
+      this.modal.data = dataRow;
+      this.modal.type = dataType;
+      this.modal.case = dataCase
     },
     addCustomer() {
       // this.modal.customer.title = `แก้ไขข้อมูลรายชื่อลูกค้า : ${rowData.id}`;

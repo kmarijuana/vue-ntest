@@ -1,48 +1,39 @@
 <template>
-  <div class="modal is-active">
-    <div class="modal-background"></div>
-    <slot></slot>
-  </div>
+    <div class="modal is-active">
+      <div class="modal-background"></div>
+      <div :class="ui_class">
+          <slot name="dataHeader"></slot>
+          <slot name="dataBody"></slot>
+          <slot name="dataFooter"></slot>
+      </div>
+    </div>
 </template>
 
 <script>
-import Customer from "./Modal/Customer";
-import Project from "./Modal/Project";
 export default {
-  components: {
-    Customer,
-    Project
-  },
-  data() {
-    return {
-      formData:[],
-      template: {
-        tableClass: "table is-hoverable table is-narrow is-fullwidth",
-        input: "input is-small is-rounded is-success"
-      }
-    };
-  },
-  props: ["title", "content", 'type', "data"],
-  mounted() {
-    this.loadFrom()
-  },
-  methods: {
-    save() {
-      this.$emit("close", this.formData);
-    },
-    placeholder(val) {
-      return `Input ${val}.`;
-    },
-    loadFrom(){
-       this.formData = this.data;
-    }
-  }
-};
+  props:["ui_class"]
+}
 </script>
+
 
 <style scoped>
 @import "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css";
-.modal-card-title{
+.modal-card-title {
   margin: 0px !important;
+}
+.modal-content-width {
+  width: 90% !important;
+}
+p {
+  font-weight: bolder;
+  font-size: large;
+}
+.tabs li a {
+  color: grey;
+}
+.content ul {
+  list-style: disc outside;
+  margin: 0px !important;
+  padding: 0px !important;
 }
 </style>
