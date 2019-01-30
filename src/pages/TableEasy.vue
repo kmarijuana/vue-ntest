@@ -234,7 +234,7 @@ export default {
 </script>
 
 <style scoped>
-@import "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css";
+/* @import "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css"; */
 
 ::-webkit-scrollbar {
   width: 10px;
